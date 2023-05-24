@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleSlug {
+  MASTER
+  MANAGER
+  MECHANIC
+}
+
+enum Status {
+  STARTED
+  FINISHED
+  PENDING
+}
+
+model EmployeeRole {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(50)
+  slug      RoleSlug @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  Employee Employee[]
+}
+
+model Employee {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(64)
+  email         String   @unique
+  mobile        String   @db.Char(11)
+  taxId         String   @db.Char(11)
+  address       String?
+  addressNumber Int?
+  city          String?
+  state         String?
+  roleId        Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  employeeRole EmployeeRole @relation(fields: [roleId], references: [id])
+  services     Service[]
+}
+
+model Customer {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(64)
+  email         String   @unique
+  mobile        String   @db.Char(11)
+  taxId         String   @db.Char(11)
+  address       String?
+  addressNumber Int?
+  city          String?
+  state         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  services Service[]
+  vehicles Vehicle[]
+}
+
+model Service {
+  id         Int      @id @default(autoincrement())
+  name       String
+  totalCost  Float
+  status     Status   @default(STARTED)
+  employeeId Int
+  customerId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  PartsOnServices PartsOnServices[]
+
+  Employee Employee @relation(fields: [employeeId], references: [id])
+  Customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model PartsOnServices {
+  serviceId Int
+  carPartId Int
+
+  service Service @relation(fields: [serviceId], references: [id])
+  carPart CarPart @relation(fields: [carPartId], references: [id])
+
+  @@id([serviceId, carPartId])
+}
+
+model CarPart {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  PartsOnServices PartsOnServices[]
+}
+
+model Vehicle {
+  id         Int      @id @default(autoincrement())
+  model      String
+  brand      String
+  engine     Float?
+  color      String?
+  customerId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  Customer Customer @relation(fields: [customerId], references: [id])
+}
