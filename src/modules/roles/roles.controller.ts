@@ -12,18 +12,21 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { Prisma } from '@prisma/client';
+import { Prisma, RoleSlug } from '@prisma/client';
 
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
+  @Roles(RoleSlug.MASTER)
   @Post()
   async create(@Body() body: CreateRoleDto, @Res() response: Response) {
     try {
@@ -46,6 +49,7 @@ export class RolesController {
     }
   }
 
+  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get()
   async findAll(@Res() response: Response) {
     try {
@@ -57,6 +61,7 @@ export class RolesController {
     }
   }
 
+  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get(':id')
   async findById(@Param('id') id: string, @Res() response: Response) {
     try {
@@ -85,6 +90,7 @@ export class RolesController {
     }
   }
 
+  @Roles(RoleSlug.MASTER)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -110,6 +116,7 @@ export class RolesController {
     }
   }
 
+  @Roles(RoleSlug.MASTER)
   @Delete(':id')
   async delete(@Param('id') id: string, @Res() response: Response) {
     try {
