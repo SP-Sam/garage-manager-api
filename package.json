@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -20,7 +23,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate:dev": "npx prisma migrate dev",
     "migrate:deploy": "npx prisma migrate deploy",
-    "prisma:generate": "npx prisma generate"
+    "prisma:generate": "npx prisma generate",
+    "prisma:seed": "npx prisma db seed"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
