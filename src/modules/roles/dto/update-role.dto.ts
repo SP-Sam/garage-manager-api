@@ -6,5 +6,7 @@ import { RoleSlug } from '@prisma/client';
 export class UpdateRoleDto extends PartialType(CreateRoleDto) {
   @IsOptional()
   name?: string;
+
+  @IsOptional()
   slug?: RoleSlug;
 }

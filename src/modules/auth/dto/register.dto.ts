@@ -27,6 +27,10 @@ export class RegisterDto {
   @IsString()
   @Length(11, 11)
   mobile: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Length(11, 11)
   taxId: string;
 
   @IsNotEmpty()
@@ -36,7 +40,13 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsOptional()
+  @IsString()
   city?: string;
+
+  @IsOptional()
+  @IsString()
   state?: string;
 
   @IsOptional()

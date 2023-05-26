@@ -67,12 +67,6 @@ export class RolesController {
     try {
       const role = await this.rolesService.findUnique(+id);
 
-      if (role == null) {
-        return response
-          .status(HttpStatus.NOT_FOUND)
-          .json({ message: 'Role not found' });
-      }
-
       return response.status(HttpStatus.OK).json(role);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {

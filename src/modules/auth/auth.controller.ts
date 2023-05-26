@@ -45,7 +45,10 @@ export class AuthController {
 
       return response.status(HttpStatus.OK).json(token);
     } catch (e) {
-      if (e.response.status === HttpStatus.NOT_FOUND || e.response.status === HttpStatus.UNAUTHORIZED) {
+      if (
+        e.response.status === HttpStatus.NOT_FOUND ||
+        e.response.status === HttpStatus.UNAUTHORIZED
+      ) {
         throw e;
       }
 
