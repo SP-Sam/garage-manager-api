@@ -1,8 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { PrismaService } from 'src/database/prisma.service';
-import { RolesService } from '../roles/roles.service';
 import * as bcrypt from 'bcrypt';
 import { EmployeesService } from '../employees/employees.service';
 import { JwtService } from '@nestjs/jwt';
@@ -10,32 +7,9 @@ import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
-    private prismaService: PrismaService,
-    private rolesService: RolesService,
     private employeesService: EmployeesService,
     private jwtService: JwtService,
   ) {}
-
-  async register(data: RegisterDto) {
-    const { id: roleId } = await this.rolesService.findUnique(data.role);
-
-    delete data.role;
-
-    const saltOrRounds = 10;
-    const hashedPassword = await bcrypt.hash(data.password, saltOrRounds);
-
-    const employeeToCreate = {
-      ...data,
-      password: hashedPassword,
-      employeeRole: { connect: { id: roleId } },
-    };
-
-    const employee = await this.prismaService.employee.create({
-      data: employeeToCreate,
-    });
-
-    return employee;
-  }
 
   async login(data: LoginDto) {
     const { email, password } = data;

@@ -125,11 +125,7 @@ export class CustomersService {
     if (employeeRole.slug === RoleSlug.MASTER) {
       return this.prismaService.customer.update({ where: { id }, data });
     } else {
-      const { employeeId } =
-        await this.prismaService.customer.findUniqueOrThrow({
-          where: { id },
-          include: { employee: true },
-        });
+      const { employeeId } = await this.findUnique(id);
 
       if (employeeId === employeeSub) {
         return this.prismaService.customer.update({ where: { id }, data });
@@ -153,11 +149,7 @@ export class CustomersService {
     if (employeeRole.slug === RoleSlug.MASTER) {
       return this.prismaService.customer.delete({ where: { id } });
     } else {
-      const { employeeId } =
-        await this.prismaService.customer.findUniqueOrThrow({
-          where: { id },
-          include: { employee: true },
-        });
+      const { employeeId } = await this.findUnique(id);
 
       if (employeeId === employeeSub) {
         return this.prismaService.customer.delete({ where: { id } });
