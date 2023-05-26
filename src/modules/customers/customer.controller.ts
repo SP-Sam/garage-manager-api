@@ -149,7 +149,10 @@ export class CustomerController {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
           {
-            status: HttpStatus.BAD_REQUEST,
+            status:
+              e.name === 'NotFoundError'
+                ? HttpStatus.NOT_FOUND
+                : HttpStatus.BAD_REQUEST,
             // Remove todos os "\n" para exibir uma mensagem de erro mais legível
             error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
@@ -186,7 +189,8 @@ export class CustomerController {
               e.name === 'NotFoundError'
                 ? HttpStatus.NOT_FOUND
                 : HttpStatus.BAD_REQUEST,
-            error: e.message,
+            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
+            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
           HttpStatus.BAD_REQUEST,
         );
