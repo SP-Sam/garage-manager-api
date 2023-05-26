@@ -41,12 +41,16 @@ model Employee {
   city          String?
   state         String?
   roleId        Int
+  employeeId    Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @default(now())
 
   employeeRole EmployeeRole @relation(fields: [roleId], references: [id])
   services     Service[]
-  customer     Customer[]
+  customers    Customer[]
+
+  creator   Employee?  @relation("EmployeeCreator", fields: [employeeId], references: [id])
+  employees Employee[] @relation("EmployeeCreator")
 }
 
 model Customer {
