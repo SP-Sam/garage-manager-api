@@ -11,15 +11,19 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Prisma } from '@prisma/client';
+import { EmployeesService } from '../employees/employees.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly employeesService: EmployeesService,
+  ) {}
 
   @Post('register')
   async register(@Body() body: RegisterDto, @Res() response: Response) {
     try {
-      const employee = await this.authService.register(body);
+      const employee = await this.employeesService.create(body);
 
       return response.status(HttpStatus.CREATED).json(employee);
     } catch (e) {

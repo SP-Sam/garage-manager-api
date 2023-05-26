@@ -67,6 +67,7 @@ export class CustomerController {
   ) {
     try {
       const { sub } = request['user'];
+
       const customers = await this.customersService.findAll(
         +page,
         +perPage,
@@ -198,7 +199,6 @@ export class CustomerController {
         throw new HttpException(
           {
             status: statusCode,
-
             // Remove todos os "\n" para exibir uma mensagem de erro mais legível
             error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
