@@ -117,13 +117,18 @@ export class CustomerController {
       return response.status(HttpStatus.OK).json(customer);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        const statusCode =
+          e.name === 'NotFoundError'
+            ? HttpStatus.NOT_FOUND
+            : HttpStatus.BAD_REQUEST;
+
         throw new HttpException(
           {
-            status: HttpStatus.BAD_REQUEST,
+            status: statusCode,
             // Remove todos os "\n" para exibir uma mensagem de erro mais legível
             error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
-          HttpStatus.BAD_REQUEST,
+          statusCode,
         );
       }
 
@@ -147,16 +152,18 @@ export class CustomerController {
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        const statusCode =
+          e.name === 'NotFoundError'
+            ? HttpStatus.NOT_FOUND
+            : HttpStatus.BAD_REQUEST;
+
         throw new HttpException(
           {
-            status:
-              e.name === 'NotFoundError'
-                ? HttpStatus.NOT_FOUND
-                : HttpStatus.BAD_REQUEST,
+            status: statusCode,
             // Remove todos os "\n" para exibir uma mensagem de erro mais legível
             error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
-          HttpStatus.BAD_REQUEST,
+          statusCode,
         );
       }
 
@@ -183,16 +190,19 @@ export class CustomerController {
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        const statusCode =
+          e.name === 'NotFoundError'
+            ? HttpStatus.NOT_FOUND
+            : HttpStatus.BAD_REQUEST;
+
         throw new HttpException(
           {
-            status:
-              e.name === 'NotFoundError'
-                ? HttpStatus.NOT_FOUND
-                : HttpStatus.BAD_REQUEST,
+            status: statusCode,
+
             // Remove todos os "\n" para exibir uma mensagem de erro mais legível
             error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
-          HttpStatus.BAD_REQUEST,
+          statusCode,
         );
       }
 
