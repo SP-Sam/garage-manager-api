@@ -35,7 +35,7 @@ model Employee {
   email         String   @unique
   password      String   @db.VarChar(64)
   mobile        String   @db.Char(11)
-  taxId         String   @db.Char(11)
+  taxId         String   @unique @db.Char(11)
   address       String?
   addressNumber Int?
   city          String?
@@ -53,7 +53,7 @@ model Customer {
   name          String   @db.VarChar(64)
   email         String   @unique
   mobile        String   @db.Char(11)
-  taxId         String   @db.Char(11)
+  taxId         String   @unique @db.Char(11)
   address       String?
   addressNumber Int?
   city          String?
