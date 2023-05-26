@@ -182,13 +182,13 @@ export class CustomerController {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
           {
-            status: HttpStatus.BAD_REQUEST,
-            error: e.meta.cause,
+            status:
+              e.name === 'NotFoundError'
+                ? HttpStatus.NOT_FOUND
+                : HttpStatus.BAD_REQUEST,
+            error: e.message,
           },
           HttpStatus.BAD_REQUEST,
-          {
-            cause: e,
-          },
         );
       }
 

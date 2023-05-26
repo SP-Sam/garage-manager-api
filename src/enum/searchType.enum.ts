@@ -1,5 +1,5 @@
 export enum SearchTypesEnum {
-  name = 'name',
+  fullName = 'fullName',
   email = 'email',
   mobile = 'mobile',
   taxId = 'taxId',

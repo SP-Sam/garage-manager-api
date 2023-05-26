@@ -50,7 +50,16 @@ export class CustomersService {
         skip,
         take: perPage,
         orderBy: { id: 'asc' },
-        include: { employee: true },
+        include: {
+          employee: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              employeeRole: { select: { id: true, slug: true } },
+            },
+          },
+        },
       });
     }
   }
@@ -60,7 +69,16 @@ export class CustomersService {
 
     return this.prismaService.customer.findUniqueOrThrow({
       where: { [key]: uniqueKey },
-      include: { employee: true },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            employeeRole: { select: { id: true, slug: true } },
+          },
+        },
+      },
     });
   }
 
@@ -84,6 +102,16 @@ export class CustomersService {
             { employeeId: employeeSub },
             { [field]: { contains: searchTerm, mode: 'insensitive' } },
           ],
+        },
+        include: {
+          employee: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              employeeRole: { select: { id: true, slug: true } },
+            },
+          },
         },
       });
     }
