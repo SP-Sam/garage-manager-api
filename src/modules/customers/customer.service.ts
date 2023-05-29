@@ -141,7 +141,7 @@ export class CustomersService {
     }
   }
 
-  async delete(id: number, employeeSub: number) {
+  async remove(id: number, employeeSub: number) {
     const { employeeRole } = await this.employeesService.findUnique(
       employeeSub,
     );

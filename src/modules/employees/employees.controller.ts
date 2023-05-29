@@ -182,7 +182,7 @@ export class EmployeesController {
 
   @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Delete(':id')
-  async delete(
+  async remove(
     @Param('id') id: string,
     @Req() request: Request,
     @Res() response: Response,
@@ -190,7 +190,7 @@ export class EmployeesController {
     try {
       const { sub } = request['user'];
 
-      await this.employeesService.delete(+id, +sub);
+      await this.employeesService.remove(+id, +sub);
 
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {

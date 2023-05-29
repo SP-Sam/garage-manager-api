@@ -112,9 +112,9 @@ export class RolesController {
 
   @Roles(RoleSlug.MASTER)
   @Delete(':id')
-  async delete(@Param('id') id: string, @Res() response: Response) {
+  async remove(@Param('id') id: string, @Res() response: Response) {
     try {
-      await this.rolesService.delete(+id);
+      await this.rolesService.remove(+id);
 
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
