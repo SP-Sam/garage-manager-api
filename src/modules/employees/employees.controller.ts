@@ -94,9 +94,9 @@ export class EmployeesController {
     try {
       const { sub } = request['user'];
 
-      const search = await this.employeesService.search(q, type, +sub);
+      const searchResult = await this.employeesService.search(q, type, +sub);
 
-      return response.status(HttpStatus.OK).json(search);
+      return response.status(HttpStatus.OK).json(searchResult);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
