@@ -79,6 +79,7 @@ model Service {
   status     ServiceStatusEnum @default(STARTED)
   employeeId Int
   customerId Int
+  vehicleId  Int
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @default(now())
 
@@ -86,6 +87,7 @@ model Service {
 
   Employee Employee @relation(fields: [employeeId], references: [id])
   Customer Customer @relation(fields: [customerId], references: [id])
+  Vehicle  Vehicle  @relation(fields: [vehicleId], references: [id])
 }
 
 model PartsOnServices {
@@ -118,5 +120,6 @@ model Vehicle {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
 
-  Customer Customer @relation(fields: [customerId], references: [id])
+  Customer Customer  @relation(fields: [customerId], references: [id])
+  Service  Service[]
 }
