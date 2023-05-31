@@ -34,10 +34,10 @@ export class ServicesService {
         take: perPage,
         orderBy: { id: 'asc' },
         include: {
-          Customer: {
+          customer: {
             select: { id: true, fullName: true, email: true, mobile: true },
           },
-          Employee: {
+          employee: {
             select: { id: true, fullName: true, email: true, mobile: true },
           },
         },
@@ -49,10 +49,10 @@ export class ServicesService {
       take: perPage,
       orderBy: { id: 'asc' },
       include: {
-        Customer: {
+        customer: {
           select: { id: true, fullName: true, email: true, mobile: true },
         },
-        Employee: {
+        employee: {
           select: { id: true, fullName: true, email: true, mobile: true },
         },
       },
@@ -63,10 +63,10 @@ export class ServicesService {
     return this.prismaService.service.findUniqueOrThrow({
       where: { id },
       include: {
-        Customer: {
+        customer: {
           select: { id: true, fullName: true, email: true, mobile: true },
         },
-        Employee: {
+        employee: {
           select: { id: true, fullName: true, email: true, mobile: true },
         },
       },
