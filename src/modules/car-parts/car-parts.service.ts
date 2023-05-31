@@ -17,8 +17,8 @@ export class CarPartsService {
     return this.prismaService.carPart.findMany({
       skip,
       take: perPage,
-      orderBy: { id: 'asc' },
       include: { _count: true },
+      orderBy: { name: 'asc' },
     });
   }
 
@@ -36,6 +36,7 @@ export class CarPartsService {
       return this.prismaService.carPart.findMany({
         where: { name: { contains: searchTerm, mode: 'insensitive' } },
         include: { _count: true },
+        orderBy: { name: 'asc' },
       });
     }
   }

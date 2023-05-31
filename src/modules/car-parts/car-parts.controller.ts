@@ -17,10 +17,9 @@ import { CreateCarPartDto } from './dto/create-car-part.dto';
 import { UpdateCarPartDto } from './dto/update-car-part.dto';
 import { Response } from 'express';
 import { Prisma } from '@prisma/client';
-import { RolesGuard } from '../roles/roles.guard';
 import { AuthGuard } from '../auth/auth.guard';
 
-@UseGuards(RolesGuard, AuthGuard)
+@UseGuards(AuthGuard)
 @Controller('car-parts')
 export class CarPartsController {
   constructor(private readonly carPartsService: CarPartsService) {}
