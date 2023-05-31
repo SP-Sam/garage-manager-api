@@ -3,4 +3,6 @@ export enum SearchTypesEnum {
   email = 'email',
   mobile = 'mobile',
   taxId = 'taxId',
+  name = 'name',
+  employeeId = 'employeeId',
 }
