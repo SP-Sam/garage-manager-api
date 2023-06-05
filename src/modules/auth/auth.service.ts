@@ -15,17 +15,9 @@ export class AuthService {
     const { email, password } = data;
 
     const employee = await this.employeesService.findUnique(email);
-    if (!employee) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'Employee email not found',
-        },
-        HttpStatus.NOT_FOUND,
-      );
-    }
 
     const isPasswordValid = await bcrypt.compare(password, employee.password);
+
     if (!isPasswordValid) {
       throw new HttpException(
         {

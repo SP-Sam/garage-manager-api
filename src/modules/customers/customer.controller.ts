@@ -153,6 +153,16 @@ export class CustomerController {
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: e.meta.cause,
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
         const statusCode =
           e.name === 'NotFoundError'
             ? HttpStatus.NOT_FOUND
@@ -192,15 +202,12 @@ export class CustomerController {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         const statusCode =
-          e.name === 'NotFoundError'
-            ? HttpStatus.NOT_FOUND
-            : HttpStatus.BAD_REQUEST;
+          e.code === 'P2025' ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
 
         throw new HttpException(
           {
             status: statusCode,
-            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
-            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
+            error: e.meta.cause,
           },
           statusCode,
         );

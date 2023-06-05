@@ -14,8 +14,14 @@ export class CustomersService {
   ) {}
 
   async create(data: CreateCustomerDto, employeeId: number) {
+    const lowercaseEmail = data.email.toLowerCase();
+
     const customer = await this.prismaService.customer.create({
-      data: { ...data, employee: { connect: { id: employeeId } } },
+      data: {
+        ...data,
+        email: lowercaseEmail,
+        employee: { connect: { id: employeeId } },
+      },
     });
 
     return customer;
@@ -122,23 +128,23 @@ export class CustomersService {
       employeeSub,
     );
 
-    if (employeeRole.slug === RoleSlug.MASTER) {
-      return this.prismaService.customer.update({ where: { id }, data });
-    } else {
+    if (employeeRole.slug !== RoleSlug.MASTER) {
       const { employeeId } = await this.findUnique(id);
 
       if (employeeId === employeeSub) {
         return this.prismaService.customer.update({ where: { id }, data });
-      } else {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNAUTHORIZED,
-            error: 'You are not the employee who registered this customer',
-          },
-          HttpStatus.UNAUTHORIZED,
-        );
       }
+
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: 'You are not the employee who registered this customer',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
+
+    return this.prismaService.customer.update({ where: { id }, data });
   }
 
   async remove(id: number, employeeSub: number) {

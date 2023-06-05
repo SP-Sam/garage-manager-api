@@ -16,15 +16,36 @@ export class EmployeesService {
   ) {}
 
   async create(data: RegisterDto, creatorId?: number) {
+    const employeeFormatted = {
+      ...data,
+      email: data.email.toLocaleLowerCase(),
+    };
+
+    if (data.role === 'MASTER') {
+      const masterEmployee = await this.prismaService.employee.findFirst({
+        where: { roleId: 1 },
+      });
+
+      if (masterEmployee) {
+        throw new HttpException(
+          {
+            status: HttpStatus.UNAUTHORIZED,
+            error: 'A Master user already exists',
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+    }
+
     const { id: roleId } = await this.rolesService.findUnique(data.role);
 
-    delete data.role;
+    delete employeeFormatted.role;
 
     const saltOrRounds = 10;
     const hashedPassword = await bcrypt.hash(data.password, saltOrRounds);
 
     const employeeToCreate = {
-      ...data,
+      ...employeeFormatted,
       password: hashedPassword,
       employeeRole: { connect: { id: roleId } },
       creator: { connect: { id: creatorId } },

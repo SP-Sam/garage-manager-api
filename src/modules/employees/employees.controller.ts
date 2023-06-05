@@ -53,6 +53,10 @@ export class EmployeesController {
         );
       }
 
+      if (e.response.status === HttpStatus.UNAUTHORIZED) {
+        throw e;
+      }
+
       throw new HttpException(
         e.message.replace(/(\r\n|\n|\r)/gm, ''),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -155,7 +159,6 @@ export class EmployeesController {
 
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
-      console.log(e);
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         const statusCode =
           e.name === 'NotFoundError'
@@ -201,13 +204,15 @@ export class EmployeesController {
         throw new HttpException(
           {
             status: statusCode,
-            error: e.meta.cause,
+            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
+            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
           statusCode,
-          {
-            cause: e,
-          },
         );
+      }
+
+      if (e.response.status === HttpStatus.UNAUTHORIZED) {
+        throw e;
       }
 
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
