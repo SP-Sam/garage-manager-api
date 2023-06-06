@@ -93,6 +93,7 @@ model Service {
 model PartsOnServices {
   serviceId Int
   carPartId Int
+  quantity  Int
 
   service Service @relation(fields: [serviceId], references: [id])
   carPart CarPart @relation(fields: [carPartId], references: [id])
