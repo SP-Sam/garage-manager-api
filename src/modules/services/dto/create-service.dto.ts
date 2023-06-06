@@ -27,4 +27,6 @@ export class CreateServiceDto {
   @IsNotEmpty()
   @IsNumber()
   vehicleId: number;
+
+  carParts: { id: number; price: number; quantity: number }[];
 }

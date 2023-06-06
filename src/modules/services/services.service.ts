@@ -3,7 +3,7 @@ import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from 'src/database/prisma.service';
 import { EmployeesService } from '../employees/employees.service';
-import { RoleSlug } from '@prisma/client';
+import { PartsOnServices, RoleSlug } from '@prisma/client';
 import { SearchTypesEnum } from 'src/enum/searchType.enum';
 
 @Injectable()
@@ -14,8 +14,23 @@ export class ServicesService {
   ) {}
 
   async create(data: CreateServiceDto, employeeId: number) {
+    const carPartIds = data.carParts.map((part) => ({
+      quantity: part.quantity,
+      carPart: {
+        connect: {
+          id: part.id,
+        },
+      },
+    }));
+
+    delete data.carParts;
+
     return this.prismaService.service.create({
-      data: { ...data, employeeId },
+      data: {
+        ...data,
+        employeeId,
+        partsOnServices: { create: carPartIds as unknown as PartsOnServices },
+      },
     });
   }
 
@@ -40,6 +55,7 @@ export class ServicesService {
           employee: {
             select: { id: true, fullName: true, email: true, mobile: true },
           },
+          vehicle: true,
         },
       });
     }
@@ -55,6 +71,15 @@ export class ServicesService {
         employee: {
           select: { id: true, fullName: true, email: true, mobile: true },
         },
+        vehicle: {
+          select: {
+            id: true,
+            model: true,
+            brand: true,
+            engine: true,
+            color: true,
+          },
+        },
       },
     });
   }
@@ -68,6 +93,15 @@ export class ServicesService {
         },
         employee: {
           select: { id: true, fullName: true, email: true, mobile: true },
+        },
+        vehicle: {
+          select: {
+            id: true,
+            model: true,
+            brand: true,
+            engine: true,
+            color: true,
+          },
         },
       },
     });
@@ -90,8 +124,12 @@ export class ServicesService {
             { employeeId },
             {
               OR: [
-                { [field]: { contains: searchTerm, mode: 'insensitive' } },
-                { [field]: searchTerm },
+                {
+                  [field]:
+                    field === 'id'
+                      ? searchTerm
+                      : { contains: searchTerm, mode: 'insensitive' },
+                },
               ],
             },
           ],
@@ -100,7 +138,16 @@ export class ServicesService {
     }
 
     return this.prismaService.service.findMany({
-      where: { [field]: searchTerm },
+      where: {
+        OR: [
+          {
+            [field]:
+              field === 'id'
+                ? searchTerm
+                : { contains: searchTerm, mode: 'insensitive' },
+          },
+        ],
+      },
     });
   }
 
@@ -134,15 +181,19 @@ export class ServicesService {
   async remove(id: number, employeeId: number) {
     const { employeeRole } = await this.employeesService.findUnique(employeeId);
 
+    const service = await this.findOne(id);
+
     if (
       employeeRole.slug !== RoleSlug.MASTER &&
       employeeRole.slug !== RoleSlug.MANAGER
     ) {
       const employee = await this.employeesService.findUnique(employeeId);
 
-      const service = await this.findOne(id);
-
       if (employee.id === service.employeeId) {
+        await this.prismaService.partsOnServices.deleteMany({
+          where: { serviceId: service.id },
+        });
+
         return this.prismaService.service.delete({ where: { id } });
       }
 
@@ -154,6 +205,10 @@ export class ServicesService {
         HttpStatus.UNAUTHORIZED,
       );
     }
+
+    await this.prismaService.partsOnServices.deleteMany({
+      where: { serviceId: service.id },
+    });
 
     return this.prismaService.service.delete({ where: { id } });
   }

@@ -4,5 +4,5 @@ export enum SearchTypesEnum {
   mobile = 'mobile',
   taxId = 'taxId',
   name = 'name',
-  employeeId = 'employeeId',
+  id = 'id',
 }

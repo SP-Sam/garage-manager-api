@@ -50,7 +50,10 @@ export class ServicesController {
         );
       }
 
-      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        e.message.replace(/(\r\n|\n|\r)/gm, ''),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -86,7 +89,7 @@ export class ServicesController {
     try {
       const { sub } = request['user'];
 
-      const searchTerm = type === 'employeeId' ? +q : q;
+      const searchTerm = type === 'id' ? +q : q;
 
       if (Number.isNaN(searchTerm)) {
         throw new HttpException(
@@ -120,7 +123,10 @@ export class ServicesController {
         throw e;
       }
 
-      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        e.message.replace(/(\r\n|\n|\r)/gm, ''),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
