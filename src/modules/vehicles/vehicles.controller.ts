@@ -1,38 +1,34 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Res,
   HttpException,
   HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Res,
   UseGuards,
 } from '@nestjs/common';
+import { VehiclesService } from './vehicles.service';
+import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { Response } from 'express';
-import { Prisma, RoleSlug } from '@prisma/client';
-
-import { RolesService } from './roles.service';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { Prisma } from '@prisma/client';
 import { AuthGuard } from '../auth/auth.guard';
-import { RolesGuard } from './roles.guard';
-import { Roles } from './roles.decorator';
 
-@UseGuards(AuthGuard, RolesGuard)
-@Controller('roles')
-export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+@UseGuards(AuthGuard)
+@Controller('vehicles')
+export class VehiclesController {
+  constructor(private readonly vehiclesService: VehiclesService) {}
 
-  @Roles(RoleSlug.MASTER)
   @Post()
-  async create(@Body() body: CreateRoleDto, @Res() response: Response) {
+  async create(@Body() body: CreateVehicleDto, @Res() response: Response) {
     try {
-      const role = await this.rolesService.create(body);
+      const vehicle = await this.vehiclesService.create(body);
 
-      return response.status(HttpStatus.CREATED).json(role);
+      return response.status(HttpStatus.CREATED).json(vehicle);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
@@ -49,60 +45,40 @@ export class RolesController {
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
-  @Get()
-  async findAll(@Res() response: Response) {
-    try {
-      const roles = await this.rolesService.findAll();
-
-      return response.status(HttpStatus.OK).json(roles);
-    } catch (e) {
-      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
-  @Get(':id')
-  async findById(@Param('id') id: string, @Res() response: Response) {
-    try {
-      const role = await this.rolesService.findUnique(+id);
-
-      return response.status(HttpStatus.OK).json(role);
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
-            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @Roles(RoleSlug.MASTER)
-  @Patch(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() body: UpdateRoleDto,
+  @Get('customer/:customerId')
+  async findAll(
+    @Param('customerId') customerId: string,
     @Res() response: Response,
   ) {
     try {
-      await this.rolesService.update(+id, body);
+      const vehicles = await this.vehiclesService.findAll(+customerId);
 
-      return response.status(HttpStatus.NO_CONTENT).end();
+      return response.status(HttpStatus.OK).json(vehicles);
+    } catch (e) {
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string, @Res() response: Response) {
+    try {
+      const vehicle = await this.vehiclesService.findOne(+id);
+
+      return response.status(HttpStatus.OK).json(vehicle);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        const statusCode =
+          e.name === 'NotFoundError'
+            ? HttpStatus.NOT_FOUND
+            : HttpStatus.BAD_REQUEST;
+
         throw new HttpException(
           {
-            status: HttpStatus.BAD_REQUEST,
-            error: e.meta.cause,
+            status: statusCode,
+            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
+            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
-          HttpStatus.BAD_REQUEST,
+          statusCode,
         );
       }
 
@@ -110,24 +86,45 @@ export class RolesController {
     }
   }
 
-  @Roles(RoleSlug.MASTER)
-  @Delete(':id')
-  async remove(@Param('id') id: string, @Res() response: Response) {
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() body: UpdateVehicleDto,
+    @Res() response: Response,
+  ) {
     try {
-      await this.rolesService.remove(+id);
+      await this.vehiclesService.update(+id, body);
 
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
           {
-            status: HttpStatus.BAD_REQUEST,
+            status: HttpStatus.NOT_FOUND,
             error: e.meta.cause,
           },
-          HttpStatus.BAD_REQUEST,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Res() response: Response) {
+    try {
+      await this.vehiclesService.remove(+id);
+
+      return response.status(HttpStatus.NO_CONTENT).end();
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpException(
           {
-            cause: e,
+            status: HttpStatus.NOT_FOUND,
+            error: e.meta.cause,
           },
+          HttpStatus.NOT_FOUND,
         );
       }
 

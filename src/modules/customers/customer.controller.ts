@@ -91,9 +91,9 @@ export class CustomerController {
     try {
       const { sub } = request['user'];
 
-      const search = await this.customersService.search(q, type, +sub);
+      const searchResult = await this.customersService.search(q, type, +sub);
 
-      return response.status(HttpStatus.OK).json(search);
+      return response.status(HttpStatus.OK).json(searchResult);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
@@ -153,6 +153,16 @@ export class CustomerController {
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: e.meta.cause,
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
         const statusCode =
           e.name === 'NotFoundError'
             ? HttpStatus.NOT_FOUND
@@ -178,7 +188,7 @@ export class CustomerController {
 
   @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Delete(':id')
-  async delete(
+  async remove(
     @Param('id') id: string,
     @Req() request: Request,
     @Res() response: Response,
@@ -186,21 +196,18 @@ export class CustomerController {
     try {
       const { sub } = request['user'];
 
-      await this.customersService.delete(+id, +sub);
+      await this.customersService.remove(+id, +sub);
 
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         const statusCode =
-          e.name === 'NotFoundError'
-            ? HttpStatus.NOT_FOUND
-            : HttpStatus.BAD_REQUEST;
+          e.code === 'P2025' ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
 
         throw new HttpException(
           {
             status: statusCode,
-            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
-            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
+            error: e.meta.cause,
           },
           statusCode,
         );

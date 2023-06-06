@@ -1,46 +1,43 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   HttpException,
   HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Query,
+  UseGuards,
   Req,
   Res,
-  UseGuards,
+  Query,
 } from '@nestjs/common';
-import { EmployeesService } from './employees.service';
-import { RegisterDto } from '../auth/dto/register.dto';
-import { Response } from 'express';
-import { Prisma, RoleSlug } from '@prisma/client';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { ServicesService } from './services.service';
+import { CreateServiceDto } from './dto/create-service.dto';
+import { UpdateServiceDto } from './dto/update-service.dto';
+import { Prisma } from '@prisma/client';
 import { AuthGuard } from '../auth/auth.guard';
-import { RolesGuard } from '../roles/roles.guard';
-import { Roles } from '../roles/roles.decorator';
+import { Request, Response } from 'express';
 import { SearchTypesEnum } from 'src/enum/searchType.enum';
 
-@UseGuards(AuthGuard, RolesGuard)
-@Controller('employees')
-export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) {}
+@UseGuards(AuthGuard)
+@Controller('services')
+export class ServicesController {
+  constructor(private readonly servicesService: ServicesService) {}
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Post()
   async create(
-    @Body() body: RegisterDto,
+    @Body() body: CreateServiceDto,
     @Req() request: Request,
     @Res() response: Response,
   ) {
     try {
       const { sub } = request['user'];
 
-      const employee = await this.employeesService.create(body, +sub);
+      const service = await this.servicesService.create(body, +sub);
 
-      return response.status(HttpStatus.CREATED).json(employee);
+      return response.status(HttpStatus.CREATED).json(service);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
@@ -53,10 +50,6 @@ export class EmployeesController {
         );
       }
 
-      if (e.response.status === HttpStatus.UNAUTHORIZED) {
-        throw e;
-      }
-
       throw new HttpException(
         e.message.replace(/(\r\n|\n|\r)/gm, ''),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -64,7 +57,6 @@ export class EmployeesController {
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get()
   async findAll(
     @Query('page') page = '1',
@@ -75,19 +67,18 @@ export class EmployeesController {
     try {
       const { sub } = request['user'];
 
-      const employees = await this.employeesService.findAll(
+      const services = await this.servicesService.findAll(
         +page,
         +perPage,
         +sub,
       );
 
-      return response.status(HttpStatus.OK).json(employees);
+      return response.status(HttpStatus.OK).json(services);
     } catch (e) {
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get('search')
   async search(
     @Query('q') q: string,
@@ -98,9 +89,25 @@ export class EmployeesController {
     try {
       const { sub } = request['user'];
 
-      const searchResult = await this.employeesService.search(q, type, +sub);
+      const searchTerm = type === 'id' ? +q : q;
 
-      return response.status(HttpStatus.OK).json(searchResult);
+      if (Number.isNaN(searchTerm)) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: 'searchTerm must be a valid value',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const services = await this.servicesService.search(
+        searchTerm,
+        type,
+        +sub,
+      );
+
+      return response.status(HttpStatus.OK).json(services);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
@@ -112,17 +119,23 @@ export class EmployeesController {
         );
       }
 
-      throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      if (e.status === HttpStatus.BAD_REQUEST) {
+        throw e;
+      }
+
+      throw new HttpException(
+        e.message.replace(/(\r\n|\n|\r)/gm, ''),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get(':id')
-  async findById(@Param('id') id: string, @Res() response: Response) {
+  async findOne(@Param('id') id: string, @Res() response: Response) {
     try {
-      const employee = await this.employeesService.findUnique(+id);
+      const service = await this.servicesService.findOne(+id);
 
-      return response.status(HttpStatus.OK).json(employee);
+      return response.status(HttpStatus.OK).json(service);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         const statusCode =
@@ -144,46 +157,34 @@ export class EmployeesController {
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() body: UpdateEmployeeDto,
+    @Body() body: UpdateServiceDto,
     @Req() request: Request,
     @Res() response: Response,
   ) {
     try {
       const { sub } = request['user'];
 
-      await this.employeesService.update(+id, body, +sub);
+      await this.servicesService.update(+id, body, +sub);
 
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        const statusCode =
-          e.name === 'NotFoundError'
-            ? HttpStatus.NOT_FOUND
-            : HttpStatus.BAD_REQUEST;
-
         throw new HttpException(
           {
-            status: statusCode,
-            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
-            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
+            status: HttpStatus.NOT_FOUND,
+            error: e.meta.cause,
           },
-          statusCode,
+          HttpStatus.NOT_FOUND,
         );
-      }
-
-      if (e.response.status === HttpStatus.UNAUTHORIZED) {
-        throw e;
       }
 
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Delete(':id')
   async remove(
     @Param('id') id: string,
@@ -193,26 +194,18 @@ export class EmployeesController {
     try {
       const { sub } = request['user'];
 
-      await this.employeesService.remove(+id, +sub);
+      await this.servicesService.remove(+id, +sub);
 
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        const statusCode =
-          e.code === 'P2025' ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
-
         throw new HttpException(
           {
-            status: statusCode,
-            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
-            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
+            status: HttpStatus.NOT_FOUND,
+            error: e.meta.cause,
           },
-          statusCode,
+          HttpStatus.NOT_FOUND,
         );
-      }
-
-      if (e.response.status === HttpStatus.UNAUTHORIZED) {
-        throw e;
       }
 
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);

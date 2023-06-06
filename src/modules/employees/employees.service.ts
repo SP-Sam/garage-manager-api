@@ -16,15 +16,36 @@ export class EmployeesService {
   ) {}
 
   async create(data: RegisterDto, creatorId?: number) {
+    const employeeFormatted = {
+      ...data,
+      email: data.email.toLocaleLowerCase(),
+    };
+
+    if (data.role === 'MASTER') {
+      const masterEmployee = await this.prismaService.employee.findFirst({
+        where: { roleId: 1 },
+      });
+
+      if (masterEmployee) {
+        throw new HttpException(
+          {
+            status: HttpStatus.UNAUTHORIZED,
+            error: 'A Master user already exists',
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+    }
+
     const { id: roleId } = await this.rolesService.findUnique(data.role);
 
-    delete data.role;
+    delete employeeFormatted.role;
 
     const saltOrRounds = 10;
     const hashedPassword = await bcrypt.hash(data.password, saltOrRounds);
 
     const employeeToCreate = {
-      ...data,
+      ...employeeFormatted,
       password: hashedPassword,
       employeeRole: { connect: { id: roleId } },
       creator: { connect: { id: creatorId } },
@@ -46,14 +67,7 @@ export class EmployeesService {
 
     const { employeeRole } = await this.findUnique(employeeSub);
 
-    if (employeeRole.slug === RoleSlug.MASTER) {
-      return this.prismaService.employee.findMany({
-        skip,
-        take: perPage,
-        orderBy: { id: 'asc' },
-        include: { employeeRole: true },
-      });
-    } else {
+    if (employeeRole.slug !== RoleSlug.MASTER) {
       return this.prismaService.employee.findMany({
         where: { creatorId: employeeSub },
         skip,
@@ -62,6 +76,13 @@ export class EmployeesService {
         include: { employeeRole: true },
       });
     }
+
+    return this.prismaService.employee.findMany({
+      skip,
+      take: perPage,
+      orderBy: { id: 'asc' },
+      include: { employeeRole: true },
+    });
   }
 
   async findUnique(uniqueKey: string | number) {
@@ -80,11 +101,7 @@ export class EmployeesService {
   ) {
     const { employeeRole } = await this.findUnique(employeeSub);
 
-    if (employeeRole.slug === RoleSlug.MASTER) {
-      return this.prismaService.employee.findMany({
-        where: { [field]: { contains: searchTerm, mode: 'insensitive' } },
-      });
-    } else {
+    if (employeeRole.slug !== RoleSlug.MASTER) {
       return this.prismaService.employee.findMany({
         where: {
           AND: [
@@ -94,49 +111,53 @@ export class EmployeesService {
         },
       });
     }
+
+    return this.prismaService.employee.findMany({
+      where: { [field]: { contains: searchTerm, mode: 'insensitive' } },
+    });
   }
 
   async update(id: number, data: UpdateEmployeeDto, employeeSub: number) {
     const { employeeRole } = await this.findUnique(employeeSub);
 
-    if (employeeRole.slug === RoleSlug.MASTER) {
-      return this.prismaService.employee.update({ where: { id }, data });
-    } else {
+    if (employeeRole.slug !== RoleSlug.MASTER) {
       const { creatorId } = await this.findUnique(id);
 
       if (creatorId === employeeSub) {
         return this.prismaService.employee.update({ where: { id }, data });
-      } else {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNAUTHORIZED,
-            error: 'You are not the employee who registered this employee',
-          },
-          HttpStatus.UNAUTHORIZED,
-        );
       }
+
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: 'You are not the employee who registered this employee',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
+
+    return this.prismaService.employee.update({ where: { id }, data });
   }
 
-  async delete(id: number, employeeSub: number) {
+  async remove(id: number, employeeSub: number) {
     const { employeeRole } = await this.findUnique(employeeSub);
 
-    if (employeeRole.slug === RoleSlug.MASTER) {
-      return this.prismaService.employee.delete({ where: { id } });
-    } else {
+    if (employeeRole.slug !== RoleSlug.MASTER) {
       const { creatorId } = await this.findUnique(id);
 
       if (creatorId === employeeSub) {
         return this.prismaService.employee.delete({ where: { id } });
-      } else {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNAUTHORIZED,
-            error: 'You are not the employee who registered this employee',
-          },
-          HttpStatus.UNAUTHORIZED,
-        );
       }
+
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          error: 'You are not the employee who registered this employee',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
+
+    return this.prismaService.employee.delete({ where: { id } });
   }
 }

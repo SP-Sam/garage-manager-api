@@ -35,7 +35,7 @@ export class RolesService {
     return this.prismaService.employeeRole.update({ where: { id }, data });
   }
 
-  async delete(id: number) {
+  async remove(id: number) {
     return this.prismaService.employeeRole.delete({ where: { id } });
   }
 }

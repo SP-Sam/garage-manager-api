@@ -49,10 +49,23 @@ export class AuthController {
 
       return response.status(HttpStatus.OK).json(token);
     } catch (e) {
-      if (
-        e.response.status === HttpStatus.NOT_FOUND ||
-        e.response.status === HttpStatus.UNAUTHORIZED
-      ) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        const statusCode =
+          e.name === 'NotFoundError'
+            ? HttpStatus.NOT_FOUND
+            : HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(
+          {
+            status: statusCode,
+            // Remove todos os "\n" para exibir uma mensagem de erro mais legível
+            error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
+          },
+          statusCode,
+        );
+      }
+
+      if (e.response.status === HttpStatus.UNAUTHORIZED) {
         throw e;
       }
 
