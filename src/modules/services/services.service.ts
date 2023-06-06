@@ -134,6 +134,23 @@ export class ServicesService {
             },
           ],
         },
+        include: {
+          customer: {
+            select: { id: true, fullName: true, email: true, mobile: true },
+          },
+          employee: {
+            select: { id: true, fullName: true, email: true, mobile: true },
+          },
+          vehicle: {
+            select: {
+              id: true,
+              model: true,
+              brand: true,
+              engine: true,
+              color: true,
+            },
+          },
+        },
       });
     }
 
@@ -147,6 +164,23 @@ export class ServicesService {
                 : { contains: searchTerm, mode: 'insensitive' },
           },
         ],
+      },
+      include: {
+        customer: {
+          select: { id: true, fullName: true, email: true, mobile: true },
+        },
+        employee: {
+          select: { id: true, fullName: true, email: true, mobile: true },
+        },
+        vehicle: {
+          select: {
+            id: true,
+            model: true,
+            brand: true,
+            engine: true,
+            color: true,
+          },
+        },
       },
     });
   }
