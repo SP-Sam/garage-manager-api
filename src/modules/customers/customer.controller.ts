@@ -28,7 +28,6 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 export class CustomerController {
   constructor(private readonly customersService: CustomersService) {}
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Post()
   async create(
     @Body() body: CreateCustomerDto,
@@ -57,7 +56,6 @@ export class CustomerController {
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get()
   async findAll(
     @Query('page') page = '1',
@@ -80,7 +78,6 @@ export class CustomerController {
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get('search')
   async search(
     @Query('q') q: string,
@@ -109,7 +106,6 @@ export class CustomerController {
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Get(':id')
   async findById(@Param('id') id: string, @Res() response: Response) {
     try {
@@ -137,7 +133,6 @@ export class CustomerController {
     }
   }
 
-  @Roles(RoleSlug.MASTER, RoleSlug.MANAGER)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -154,6 +149,16 @@ export class CustomerController {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {
+          if (e.name === 'NotFoundError') {
+            throw new HttpException(
+              {
+                status: HttpStatus.NOT_FOUND,
+                error: e.message,
+              },
+              HttpStatus.NOT_FOUND,
+            );
+          }
+
           throw new HttpException(
             {
               status: HttpStatus.NOT_FOUND,
@@ -203,6 +208,16 @@ export class CustomerController {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         const statusCode =
           e.code === 'P2025' ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+
+        if (e.name === 'NotFoundError') {
+          throw new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: e.message,
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
 
         throw new HttpException(
           {

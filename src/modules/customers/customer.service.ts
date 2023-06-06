@@ -34,23 +34,7 @@ export class CustomersService {
       employeeSub,
     );
 
-    if (employeeRole.slug === RoleSlug.MASTER) {
-      return this.prismaService.customer.findMany({
-        skip,
-        take: perPage,
-        orderBy: { id: 'asc' },
-        include: {
-          employee: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              employeeRole: { select: { id: true, slug: true } },
-            },
-          },
-        },
-      });
-    } else {
+    if (employeeRole.slug !== RoleSlug.MASTER) {
       return this.prismaService.customer.findMany({
         where: { employeeId: employeeSub },
         skip,
@@ -68,6 +52,22 @@ export class CustomersService {
         },
       });
     }
+
+    return this.prismaService.customer.findMany({
+      skip,
+      take: perPage,
+      orderBy: { id: 'asc' },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            employeeRole: { select: { id: true, slug: true } },
+          },
+        },
+      },
+    });
   }
 
   async findUnique(uniqueKey: string | number) {
@@ -97,11 +97,7 @@ export class CustomersService {
       employeeSub,
     );
 
-    if (employeeRole.slug === RoleSlug.MASTER) {
-      return this.prismaService.customer.findMany({
-        where: { [field]: { contains: searchTerm, mode: 'insensitive' } },
-      });
-    } else {
+    if (employeeRole.slug !== RoleSlug.MASTER) {
       return this.prismaService.customer.findMany({
         where: {
           AND: [
@@ -121,6 +117,10 @@ export class CustomersService {
         },
       });
     }
+
+    return this.prismaService.customer.findMany({
+      where: { [field]: { contains: searchTerm, mode: 'insensitive' } },
+    });
   }
 
   async update(id: number, data: UpdateCustomerDto, employeeSub: number) {

@@ -160,18 +160,33 @@ export class EmployeesController {
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        const statusCode =
-          e.name === 'NotFoundError'
-            ? HttpStatus.NOT_FOUND
-            : HttpStatus.BAD_REQUEST;
+        if (e.code === 'P2025') {
+          if (e.name === 'NotFoundError') {
+            throw new HttpException(
+              {
+                status: HttpStatus.NOT_FOUND,
+                error: e.message,
+              },
+              HttpStatus.NOT_FOUND,
+            );
+          }
+
+          throw new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: e.meta.cause,
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
 
         throw new HttpException(
           {
-            status: statusCode,
+            status: HttpStatus.BAD_REQUEST,
             // Remove todos os "\n" para exibir uma mensagem de erro mais legível
             error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
-          statusCode,
+          HttpStatus.BAD_REQUEST,
         );
       }
 
@@ -198,16 +213,33 @@ export class EmployeesController {
       return response.status(HttpStatus.NO_CONTENT).end();
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        const statusCode =
-          e.code === 'P2025' ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+        if (e.code === 'P2025') {
+          if (e.name === 'NotFoundError') {
+            throw new HttpException(
+              {
+                status: HttpStatus.NOT_FOUND,
+                error: e.message,
+              },
+              HttpStatus.NOT_FOUND,
+            );
+          }
+
+          throw new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: e.meta.cause,
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
 
         throw new HttpException(
           {
-            status: statusCode,
+            status: HttpStatus.BAD_REQUEST,
             // Remove todos os "\n" para exibir uma mensagem de erro mais legível
             error: e.message.replace(/(\r\n|\n|\r)/gm, ''),
           },
-          statusCode,
+          HttpStatus.BAD_REQUEST,
         );
       }
 
