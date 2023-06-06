@@ -102,7 +102,7 @@ model PartsOnServices {
 
 model CarPart {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      String   @unique
   price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
