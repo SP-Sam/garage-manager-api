@@ -16,9 +16,25 @@ export class EmployeesService {
   ) {}
 
   async create(data: RegisterDto, creatorId?: number) {
+    const lowerCaseEmail = data.email.toLocaleLowerCase();
+
+    const foundedEmployee = await this.prismaService.employee.findFirst({
+      where: { OR: [{ email: lowerCaseEmail }, { taxId: data.taxId }] },
+    });
+
+    if (foundedEmployee) {
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          error: 'E-mail or taxId already registered',
+        },
+        HttpStatus.CONFLICT,
+      );
+    }
+
     const employeeFormatted = {
       ...data,
-      email: data.email.toLocaleLowerCase(),
+      email: lowerCaseEmail,
     };
 
     if (data.role === 'MASTER') {

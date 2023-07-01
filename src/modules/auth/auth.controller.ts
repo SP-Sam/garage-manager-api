@@ -29,7 +29,7 @@ export class AuthController {
       const employee = await this.employeesService.create(body);
 
       return response.status(HttpStatus.CREATED).json(employee);
-    } catch (e) {
+    } catch (e: any) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(
           {
@@ -39,6 +39,10 @@ export class AuthController {
           },
           HttpStatus.BAD_REQUEST,
         );
+      }
+
+      if (e.status === HttpStatus.CONFLICT) {
+        throw e;
       }
 
       throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
