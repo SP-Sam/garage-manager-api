@@ -7,6 +7,7 @@ import { RolesService } from '../roles/roles.service';
 import * as bcrypt from 'bcrypt';
 import { Employee, RoleSlug } from '@prisma/client';
 import { SearchTypesEnum } from 'src/enum/searchType.enum';
+import { async } from 'rxjs';
 
 @Injectable()
 export class EmployeesService {
@@ -18,15 +19,29 @@ export class EmployeesService {
   async create(data: RegisterDto, creatorId?: number) {
     const lowerCaseEmail = data.email.toLocaleLowerCase();
 
-    const foundedEmployee = await this.prismaService.employee.findFirst({
-      where: { OR: [{ email: lowerCaseEmail }, { taxId: data.taxId }] },
+    const foundedEmployeeEmail = await this.prismaService.employee.findFirst({
+      where: { email: lowerCaseEmail },
     });
 
-    if (foundedEmployee) {
+    if (foundedEmployeeEmail) {
       throw new HttpException(
         {
           status: HttpStatus.CONFLICT,
-          error: 'E-mail or taxId already registered',
+          error: 'E-mail already registered',
+        },
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const foundedEmployeeTaxId = await this.prismaService.employee.findFirst({
+      where: { taxId: lowerCaseEmail },
+    });
+
+    if (foundedEmployeeTaxId) {
+      throw new HttpException(
+        {
+          status: HttpStatus.CONFLICT,
+          error: 'Tax ID already registered',
         },
         HttpStatus.CONFLICT,
       );
