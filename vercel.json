@@ -1,7 +1,6 @@
 {
   "version": 2,
   "env": {
-    "PORT": "@port",
     "DATABASE_URL": "@database_url",
     "JWT_SECRET": "@jwt_secret"
   },
