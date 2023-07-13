@@ -3,7 +3,7 @@
   "env": {
     "PORT": "@port",
     "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "VHpkFQFAALJ9szUQ"
+    "JWT_SECRET": "@jwt_secret"
   },
   "builds": [
     {
