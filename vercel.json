@@ -1,9 +1,5 @@
 {
   "version": 2,
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "JWT_SECRET": "@jwt_secret"
-  },
   "installCommand": "yarn",
   "buildCommand": "yarn build; yarn migrate:deploy; yarn generate",
   "outputDirectory": "dist",
