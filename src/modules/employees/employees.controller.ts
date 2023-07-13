@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { RegisterDto } from '../auth/dto/register.dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { Prisma, RoleSlug } from '@prisma/client';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { AuthGuard } from '../auth/auth.guard';
