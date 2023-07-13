@@ -7,7 +7,6 @@ import { RolesService } from '../roles/roles.service';
 import * as bcrypt from 'bcrypt';
 import { Employee, RoleSlug } from '@prisma/client';
 import { SearchTypesEnum } from 'src/enum/searchType.enum';
-import { async } from 'rxjs';
 
 @Injectable()
 export class EmployeesService {
