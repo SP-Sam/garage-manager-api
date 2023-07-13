@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "env": {
+    "PORT": "@port",
+    "DATABASE_URL": "@database_url",
+    "JWT_SECRET": "VHpkFQFAALJ9szUQ"
+  },
   "builds": [
     {
       "src": "src/main.ts",
