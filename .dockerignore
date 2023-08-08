@@ -1,0 +1,7 @@
+.env
+.git
+.gitignore
+.eslintrc.js
+.prettierrc
+build.sh
+README.md
