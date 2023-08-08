@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 
 COPY package.json yarn.lock ./
 
-RUN yarn install
+RUN yarn install --quiet --no-optional --no-fund --loglevel=error
 
 COPY . .
 
